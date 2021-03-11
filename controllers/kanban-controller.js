@@ -1,9 +1,9 @@
-const { Backlog, Todo, Doing, Done } = require("../models/")
+const { Task } = require("../models/")
 
 class KanbanBoard {
 
-  static getBacklog(req, res, next) {
-    Backlog.findAll()
+  static getTask(req, res, next) {
+    Task.findAll()
       .then((data) => {
         res.status(200).json(data)
       })
@@ -12,37 +12,7 @@ class KanbanBoard {
       })
   }
 
-  static getTodo(req, res, next) {
-    Todo.findAll()
-      .then((data) => {
-        res.status(200).json(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  static getDoing(req, res, next) {
-    Doing.findAll()
-      .then((data) => {
-        res.status(200).json(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  static getDone(req, res, next) {
-    Done.findAll()
-      .then((data) => {
-        res.status(200).json(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  static addBacklog(req, res, next) {
+  static addTask(req, res, next) {
     let body = {
       title: req.body.title,
       description: req.body.description,
@@ -50,7 +20,7 @@ class KanbanBoard {
       assign_to: req.body.assign_to,
       UserId: req.user.id
     }
-    Backlog.create(body)
+    Task.create(body)
       .then((data) => {
         res.status(200).json(data)
       })
@@ -60,167 +30,79 @@ class KanbanBoard {
           err.errors.forEach((error) => {
             errors.push(error.message)
           })
-          next({code: 400, message: errors, from: "dari controller kanban addBacklog"})
+          next({code: 400, message: errors, from: "dari controller kanban addTask"})
         } else {
-          next({code: 500, message: "Internal Server Error", from: "dari controller kanban addBacklog"})
+          next({code: 500, message: "Internal Server Error", from: "dari controller kanban addTask"})
         }
       })
   }
 
-  static moveForwardTable(req, res, next) {
+  static moveTask(req, res, next) {
     const idTask = +req.params.id
-    const tableFrom = req.params.tableFrom
-    let dataNew
-
-    if(tableFrom == Backlog.name) {
-      Backlog.findOne({where: { id: idTask }})
-        .then((dataBefore) => {
-          // console.log(dataBefore.data)
-          const { title, description, point, assign_to, UserId } = dataBefore
-          const body = {title, description, point, assign_to, UserId}
-          return Todo.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          return Backlog.destroy({where: {id: idTask}})
-        })
-        .then(() => {
-          res.status(201).json({message: `success delete from Backlog Table and success moving to Todos Table` , data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-    } else if (tableFrom == Todo.name) {
-      Todo.findOne({where: { id: idTask }})
-        .then((dataBefore) => {
-          const { title, description, point, assign_to, UserId } = dataBefore
-          const body = {title, description, point, assign_to, UserId }
-          return Doing.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          return Todo.destroy({where: {id: idTask}})
-        })
-        .then(() => {
-          res.status(201).json({message: `success delete from Todo Table and success moving to Doing Table`, data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-
-    } else if (tableFrom == Doing.name) {
-      Doing.findOne({ where: { id: idTask } })
-        .then((dataBefore) => {
-          const { title, description, point, assign_to, UserId} = dataBefore
-          const body = {title, description, point, assign_to, UserId}
-          return Done.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          return Doing.destroy({where: {id: idTask}})
-        })
-        .then(() => {
-          res.status(201).json({message: `success delete from Doing Table and success moving to Done Table`, data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-    } else {
-      next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
+    const body = {
+      category: req.body.category
     }
-  }
-
-  static moveBackTable(req, res, next) {
-    const idTask = +req.params.id
-    const tableFrom = req.params.tableFrom
-    let dataNew
-
-    if(tableFrom == Todo.name) {
-      Todo.findOne({where: { id: idTask }})
-        .then((dataBefore) => {
-          const { title, description, point, assign_to, UserId } = dataBefore
-          const body = {title, description, point, assign_to, UserId }
-          return Backlog.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          console.log(dataNew)
-          return Todo.destroy({where: {id: idTask}})
-        })
-        .then(() => {
-          console.log("masuk sini")
-          res.status(201).json({message: `success delete from Todo Table and success moving to Backlog Table`, data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-
-    } else if(tableFrom == Doing.name) {
-      Doing.findOne({where: {id: idTask}})
-        .then((dataBefore) => {
-          const { title, description, point, assign_to, UserId } = dataBefore
-          const body = {title, description, point, assign_to, UserId }
-          return Todo.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          return Doing.destroy({where: {id: idTask}})
-        })
-        .then(() => {
-          res.status(201).json({message: `success delete from Doing Table and success moving to Todo Table`, data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-
-    } else if(tableFrom == Done.name) {
-      Done.findOne({where: {id: idTask}})
-        .then((dataBefore) => {
-          const { title, description, point, assign_to, UserId } = dataBefore
-          const body = {title, description, point, assign_to, UserId }
-          return Doing.create(body)
-        })
-        .then((dataAfter) => {
-          dataNew = dataAfter
-          return Done.destroy({where: {id: idTask }})
-        })
-        .then(() => {
-          res.status(201).json({message: `success delete from Done Table and success moving to Doing Table`, data: dataNew})
-        })
-        .catch((err) => {
-          console.log(err)
-          next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-        })
-    } else {
-      next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
-    }
+    Task.update(body, {where: { id: idTask }})
+      .then((data) => {
+        if(data) {
+          res.status(201).json({message: `success moving to ${body.category}'s Table`, data: idTask})
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+        next({code: 500, message: "Internal Server Error", from: "dari moveForwardTable controller"})
+      })
   }
 
   static deleteTask(req, res, next) {
     const idTask = +req.params.id
-    const tableFrom = req.params.tableFrom
-    
-    if(tableFrom == Backlog.name) {
-      Backlog.destroy({where: {id: idTask}}).then(result).catch(resultError)
-    } else if(tableFrom == Todo.name) {
-      Todo.destroy({where: {id: idTask}}).then(result).catch(resultError)
-    } else if(tableFrom == Doing.name) {
-      Doing.destroy({where: {id: idTask}}).then(result).catch(resultError)
-    } else if(tableFrom == Done.name) {
-      Done.destroy({where: {id: idTask}}).then(result).catch(resultError)
-    }
+    Task.destroy({ where: { id: idTask }})
+      .then((data) => {
+        res.status(200).json({message: "Task deleted", data: idTask})
+      })
+      .catch((err) => {
+        console.log(err)
+        next({code: 500, message: "Internal Server Error", from: "dari deleteTask controller"})
+      })
+  }
 
-    function result() {
-      res.status(200).json({message: `success delete from ${tableFrom}` })
+  static getEdit(req, res, next) {
+    const idTask = +req.params.id
+    Task.findOne({where: { id: idTask}})
+      .then((data) => {
+        if(data) {
+          res.status(200).json({data})
+        } else {
+          next({code: 404, message: "Data Not Found", from: "dari getEdit controller"})
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+        next({code: 500, message: "Internal Server Error", from: "dari getEdit controller"})
+      })
+  }
+
+  static editTask(req, res, next) {
+    const idTask = +req.params.id
+    let body = {
+      title: req.body.title,
+      description: req.body.description,
+      point: req.body.point,
+      assign_to: req.body.assign_to,
     }
-    function resultError() {
-      res.status(500).json({message: "Internal Server Error"})
-    }
+    Task.update(body, {where: { id: idTask }})
+      .then((data) => {
+        console.log(data)
+        if(data[0] == 1) {
+          res.status(200).json({message: "update success"})
+        } else {
+          next({ code: 400, message:"Data harus diisi"})
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json({message: "Internal Server Error", from: "dari editTask controller"})
+      })
   }
 }
 

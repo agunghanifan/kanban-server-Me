@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Backlogs', {
+    await queryInterface.createTable('Tasks', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -15,7 +15,7 @@ module.exports = {
         type: Sequelize.TEXT
       },
       point: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       assign_to: {
         type: Sequelize.STRING
@@ -24,12 +24,15 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: {
-            tableName: 'Users'
+            tableName: "Users"
           },
           key: "id"
         },
         onUpdate: "cascade",
         onDelete: "cascade"
+      },
+      category: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -42,6 +45,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Backlogs');
+    await queryInterface.dropTable('Tasks');
   }
 };
