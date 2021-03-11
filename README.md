@@ -74,7 +74,7 @@ EndPonints list:
 - Request body
 ```JSON
     {
-        "name": "name"
+        "name": "name",
         "email": "email",
         "password": "password",
     }
@@ -236,7 +236,7 @@ EndPonints list:
     {
         "title": "title",
         "description": "description",
-        "point": 10
+        "point": 10,
         "assign_to": "assignto"
     }
 ```
