@@ -15,7 +15,7 @@ module.exports = {
         type: Sequelize.TEXT
       },
       point: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       assign_to: {
         type: Sequelize.STRING

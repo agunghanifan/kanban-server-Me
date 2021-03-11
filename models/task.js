@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     } ,
     point: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
         notNull: {
