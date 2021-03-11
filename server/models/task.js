@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Backlog extends Model {
+  class Task extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,21 +11,21 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Backlog.belongsTo(models.User,{foreignKey: "UserId"})
+      Task.belongsTo(models.User,{foreignKey: "UserId"})
     }
   };
-  Backlog.init({
+  Task.init({
     title: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notNull: {
           args: true,
-          msg: "title is required"
+          msg: "Title is required"
         },
         notEmpty: {
           args: true,
-          msg: "title is required"
+          msg: "Title is required"
         }
       }
     } ,
@@ -35,28 +35,28 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notNull: {
           args: true,
-          msg: "description is required"
+          msg: "Description is required"
         },
         notEmpty: {
           args: true,
-          msg: "description is required"
+          msg: "Description is required"
         }
       }
     } ,
     point: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notNull: {
           args: true,
-          msg: "point is required"
+          msg: "Point is required"
         },
         notEmpty: {
           args: true,
-          msg: "point is required"
+          msg: "Point is required"
         }
       }
-    } ,
+    },
     assign_to: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -73,18 +73,24 @@ module.exports = (sequelize, DataTypes) => {
     } ,
     UserId: {
       type: DataTypes.INTEGER,
-      references: {
-        model: {
-          tableName: 'Users'
+        references: {
+          model: {
+            tableName: "Users"
+          },
+          key: "id"
         },
-        key: "id"
-      },
-      onUpdate: "cascade",
-      onDelete: "cascade"
-    },
+        onUpdate: "cascade",
+        onDelete: "cascade"
+    } ,
+    category: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'Backlog',
+    modelName: 'Task',
+    hooks: {
+      beforeCreate: (instance) => {
+        instance.category = "backlog"
+      }
+    }
   });
-  return Backlog;
+  return Task;
 };

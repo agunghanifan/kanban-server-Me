@@ -12,10 +12,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.hasMany(models.Backlog,{foreignKey: "UserId"})
-      User.hasMany(models.Doing,{foreignKey: "UserId"})
-      User.hasMany(models.Done,{foreignKey: "UserId"})
-      User.hasMany(models.Todo,{foreignKey: "UserId"})
+      User.hasMany(models.Task,{foreignKey: "UserId"})
     }
   };
   User.init({
