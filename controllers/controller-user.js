@@ -1,6 +1,7 @@
 const { User } = require("../models/")
 const { decodePassword } = require("../helpers/hash-password")
 const { getToken } = require("../helpers/jwt")
+const { OAuth2Client } = require('google-auth-library');
 
 class ControllerUser {
 
@@ -30,10 +31,12 @@ class ControllerUser {
   }
 
   static loginUser(req, res, next) {
+    console.log(req.body)
     let body = {
       email: req.body.email,
       password: req.body.password
     }
+    console.log(body)
     User.findOne({where: {email: body.email}})
       .then((data) => {
         console.log(data)
@@ -42,7 +45,11 @@ class ControllerUser {
           const access_token = getToken(data.id, data.email, data.name)
           res.status(200).json({status: "success", id: data.id, name: data.name, email: data.email, access_token})
         } else {
-          next({code: 401, message: "Email / Password is wrong, try again.", from: "dari controller login"})
+          if(!body.password) {
+            next({code: 400, message: "Email / Password wajib diisi", from: "dari controller login catch"})
+          } else {
+            next({code: 401, message: "Email / Password is wrong, try again.", from: "dari controller login"})
+          }
         }
       })
       .catch(() => {
@@ -51,21 +58,24 @@ class ControllerUser {
   }
 
   static googleLogin(req, res, next) {
+    console.log("masuk google login")
+    console.log(process.env.GOOGLE_CLIENT_ID)
+    console.log(req.body.id_token)
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     let email
     let userName
-
     client.verifyIdToken({
       idToken: req.body.id_token,
       audience: process.env.GOOGLE_CLIENT_ID
     })
       .then(ticket => {
+        console.log("masuk ticket")
         const payload = ticket.getPayload()
         // console.log(payload, "ini payload<<<<<<<<<<<<")
         email = payload.email
         userName = `${payload.given_name} ${payload.family_name}`
 
-        return Account.findOne({
+        return User.findOne({
           where: {
             email,
             name : userName
@@ -75,7 +85,7 @@ class ControllerUser {
       .then(data => {
         // console.log(data)
         if (!data) {
-          return Account.create({
+          return User.create({
             email,
             name : userName,
             password: `${String(new Date())}/*&@${email}`
@@ -95,7 +105,7 @@ class ControllerUser {
         })
       })
       .catch(err => {
-        // console.log(err);
+        console.log(err);
         next({ code: 500, message: "Internal Server Error" })
       })
   }

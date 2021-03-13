@@ -1,14 +1,36 @@
-const { Task } = require("../models/")
+const { Task, User, Category } = require("../models/")
 
 class KanbanBoard {
 
   static getTask(req, res, next) {
-    Task.findAll()
+    console.log("masuk get task controller")
+    Task.findAll({
+      include: [
+        {
+          model: User
+        },
+        {
+          model: Category
+        }
+    ]
+    })
       .then((data) => {
+        console.log("getTask <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
         res.status(200).json(data)
       })
       .catch((err) => {
-        console.log(err)
+        next({code: 500, message: "Internal Server Error", from: "dari controller kanban getTask"})
+      })
+  }
+
+  static getCategory(req, res, next) {
+    Category.findAll({})
+      .then((data) => {
+        console.log("getcategory <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        res.status(200).json(data)
+      })
+      .catch((err) => {
+        next({code: 500, message: "Internal Server Error", from: "dari controller getCategory"})
       })
   }
 
@@ -18,10 +40,13 @@ class KanbanBoard {
       description: req.body.description,
       point: req.body.point,
       assign_to: req.body.assign_to,
-      UserId: req.user.id
+      UserId: req.user.id,
+      CategoryId: req.body.CategoryId
     }
+    console.log(body)
     Task.create(body)
       .then((data) => {
+        console.log("success tercreate data")
         res.status(200).json(data)
       })
       .catch((err) => {
@@ -40,12 +65,13 @@ class KanbanBoard {
   static moveTask(req, res, next) {
     const idTask = +req.params.id
     const body = {
-      category: req.body.category
+      CategoryId: req.body.CategoryId
     }
+    console.log(body)
     Task.update(body, {where: { id: idTask }})
       .then((data) => {
         if(data) {
-          res.status(201).json({message: `success moving to ${body.category}'s Table`, data: idTask})
+          res.status(201).json({message: `success moving to ${body.CategoryId}'s Table`, data: idTask})
         }
       })
       .catch((err) => {
@@ -71,7 +97,7 @@ class KanbanBoard {
     Task.findOne({where: { id: idTask}})
       .then((data) => {
         if(data) {
-          res.status(200).json({data})
+          res.status(200).json(data)
         } else {
           next({code: 404, message: "Data Not Found", from: "dari getEdit controller"})
         }
@@ -84,12 +110,14 @@ class KanbanBoard {
 
   static editTask(req, res, next) {
     const idTask = +req.params.id
+    console.log(idTask)
     let body = {
       title: req.body.title,
       description: req.body.description,
       point: req.body.point,
       assign_to: req.body.assign_to,
     }
+    console.log(body)
     Task.update(body, {where: { id: idTask }})
       .then((data) => {
         console.log(data)
@@ -100,8 +128,15 @@ class KanbanBoard {
         }
       })
       .catch((err) => {
-        console.log(err)
-        res.status(500).json({message: "Internal Server Error", from: "dari editTask controller"})
+        let errors = []
+        if(err.errors.length) {
+          err.errors.forEach((error) => {
+            errors.push(error.message)
+          })
+          next({code: 400, message: errors, from: "dari controller kanban addTask"})
+        } else {
+          next({code: 500, message: "Internal Server Error", from: "dari controller kanban addTask"})
+        }
       })
   }
 }

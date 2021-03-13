@@ -9,6 +9,9 @@ router.use(authenticate)
 // get data from server to display in kanban board
 router.get("/", KanbanBoard.getTask)
 
+// get category
+router.get("/cat", KanbanBoard.getCategory)
+
 // add backlog data
 router.post("/add", KanbanBoard.addTask)
 
