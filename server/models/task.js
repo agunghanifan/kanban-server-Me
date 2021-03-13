@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Task.belongsTo(models.User,{foreignKey: "UserId"})
+      Task.belongsTo(models.Category,{foreignKey: "CategoryId"})
     }
   };
   Task.init({
@@ -82,15 +83,25 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: "cascade",
         onDelete: "cascade"
     } ,
-    category: DataTypes.STRING
+    CategoryId: {
+      type: DataTypes.INTEGER,
+        references: {
+          model: {
+            tableName: "Categories"
+          },
+          key: "id"
+        },
+        onUpdate: "cascade",
+        onDelete: "cascade"
+    }
   }, {
     sequelize,
     modelName: 'Task',
-    hooks: {
-      beforeCreate: (instance) => {
-        instance.category = "backlog"
-      }
-    }
+    // hooks: {
+    //   beforeCreate: (instance) => {
+    //     instance.CategoryId = 1
+    //   }
+    // }
   });
   return Task;
 };

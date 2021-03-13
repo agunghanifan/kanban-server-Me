@@ -31,8 +31,16 @@ module.exports = {
         onUpdate: "cascade",
         onDelete: "cascade"
       },
-      category: {
-        type: Sequelize.STRING
+      CategoryId: {
+        type: Sequelize.INTEGER,
+          references: {
+            model: {
+              tableName: "Categories"
+            },
+            key: "id"
+          },
+          onUpdate: "cascade",
+          onDelete: "cascade"
       },
       createdAt: {
         allowNull: false,
